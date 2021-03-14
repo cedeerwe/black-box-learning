@@ -8,15 +8,20 @@ use std::io;
 struct GuessingGame {
     min: u32,
     max: u32,
+    number_of_guesses: usize,
 }
 
 impl GuessingGame {
     fn new(min: u32, max: u32) -> Self {
-        GuessingGame { min, max }
+        GuessingGame {
+            min,
+            max,
+            number_of_guesses: 0,
+        }
     }
 
     fn start(
-        &self,
+        &mut self,
         mut writer: impl std::io::Write,
         mut rng: impl RngCore,
     ) -> Result<(), std::io::Error> {
@@ -41,9 +46,14 @@ impl GuessingGame {
                 }
             };
 
+            self.number_of_guesses += 1;
             match guess.cmp(&number_to_guess) {
                 std::cmp::Ordering::Equal => {
-                    writeln!(writer, "You guessed correctly, the number is {}!", guess)?;
+                    writeln!(
+                        writer,
+                        "You guessed correctly, the number is {}! It took you {} guesses.",
+                        guess, self.number_of_guesses
+                    )?;
                     return Ok(());
                 }
                 std::cmp::Ordering::Greater => {
