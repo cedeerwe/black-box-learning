@@ -11,10 +11,10 @@ struct GuessingGame {
 }
 
 impl GuessingGame {
-    fn new(min: u32, max: u32, mut rng: impl RngCore) -> Self {
+    fn new(max: u32, mut rng: impl RngCore) -> Self {
         GuessingGame {
             number_of_guesses: 0,
-            number_to_guess: rng.gen_range(min..=max),
+            number_to_guess: rng.gen_range(0..=max),
         }
     }
 
@@ -60,5 +60,5 @@ impl GuessingGame {
 }
 
 fn main() -> Result<(), std::io::Error> {
-    GuessingGame::new(0, 100, rand::thread_rng()).start(std::io::stdout())
+    GuessingGame::new(100, rand::thread_rng()).start(std::io::stdout())
 }
