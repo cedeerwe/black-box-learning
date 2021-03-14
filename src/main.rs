@@ -10,6 +10,15 @@ struct GuessingGame {
     number_to_guess: u32,
 }
 
+fn read_and_parse_u32() -> Result<u32, std::num::ParseIntError> {
+    let mut guess = String::new();
+    io::stdin()
+        .read_line(&mut guess)
+        .expect("Failed to read line");
+
+    guess.trim().parse::<u32>()
+}
+
 impl GuessingGame {
     fn new(max: u32, mut rng: impl RngCore) -> Self {
         GuessingGame {
@@ -27,12 +36,7 @@ impl GuessingGame {
         writeln!(writer, "Hello dear friend. Guess my secret number!")?;
 
         loop {
-            let mut guess = String::new();
-            io::stdin()
-                .read_line(&mut guess)
-                .expect("Failed to read line");
-
-            let guess: u32 = match guess.trim().parse() {
+            let guess = match read_and_parse_u32() {
                 Ok(num) => num,
                 Err(_) => {
                     writeln!(
