@@ -18,6 +18,11 @@ impl GuessingGame {
         }
     }
 
+    fn make_guess(&mut self, guess: u32) -> std::cmp::Ordering {
+        self.number_of_guesses += 1;
+        guess.cmp(&self.number_to_guess)
+    }
+
     fn start(&mut self, mut writer: impl std::io::Write) -> Result<(), std::io::Error> {
         writeln!(writer, "Hello dear friend. Guess my secret number!")?;
 
@@ -38,8 +43,7 @@ impl GuessingGame {
                 }
             };
 
-            self.number_of_guesses += 1;
-            match guess.cmp(&self.number_to_guess) {
+            match self.make_guess(guess) {
                 std::cmp::Ordering::Equal => {
                     writeln!(
                         writer,
