@@ -1,4 +1,4 @@
-use rand::Rng;
+use rand::{Rng, RngCore};
 use std::io;
 
 // A simple guessing game. The program fixes a number between 0 and 100. The player
@@ -15,8 +15,11 @@ impl GuessingGame {
         GuessingGame { min, max }
     }
 
-    fn start(&self, mut writer: impl std::io::Write) -> Result<(), std::io::Error> {
-        let mut rng = rand::thread_rng();
+    fn start(
+        &self,
+        mut writer: impl std::io::Write,
+        mut rng: impl RngCore,
+    ) -> Result<(), std::io::Error> {
         let number_to_guess = rng.gen_range(self.min..=self.max);
 
         writeln!(writer, "Hello dear friend. Guess my secret number!")?;
@@ -55,5 +58,5 @@ impl GuessingGame {
 }
 
 fn main() -> Result<(), std::io::Error> {
-    GuessingGame::new(0, 100).start(std::io::stdout())
+    GuessingGame::new(0, 100).start(std::io::stdout(), rand::thread_rng())
 }
