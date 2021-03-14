@@ -6,29 +6,19 @@ use std::io;
 // guesses correctly and the program finishes.
 // Implementation based on https://doc.rust-lang.org/book/ch02-00-guessing-game-tutorial.html
 struct GuessingGame {
-    min: u32,
-    max: u32,
     number_of_guesses: usize,
-    number_to_guess: Option<u32>,
+    number_to_guess: u32,
 }
 
 impl GuessingGame {
-    fn new(min: u32, max: u32) -> Self {
+    fn new(min: u32, max: u32, mut rng: impl RngCore) -> Self {
         GuessingGame {
-            min,
-            max,
             number_of_guesses: 0,
-            number_to_guess: None,
+            number_to_guess: rng.gen_range(min..=max),
         }
     }
 
-    fn start(
-        &mut self,
-        mut writer: impl std::io::Write,
-        mut rng: impl RngCore,
-    ) -> Result<(), std::io::Error> {
-        self.number_to_guess = Some(rng.gen_range(self.min..=self.max));
-
+    fn start(&mut self, mut writer: impl std::io::Write) -> Result<(), std::io::Error> {
         writeln!(writer, "Hello dear friend. Guess my secret number!")?;
 
         loop {
@@ -49,8 +39,7 @@ impl GuessingGame {
             };
 
             self.number_of_guesses += 1;
-            // TODO: remove the unwrap
-            match guess.cmp(&self.number_to_guess.unwrap()) {
+            match guess.cmp(&self.number_to_guess) {
                 std::cmp::Ordering::Equal => {
                     writeln!(
                         writer,
@@ -71,5 +60,5 @@ impl GuessingGame {
 }
 
 fn main() -> Result<(), std::io::Error> {
-    GuessingGame::new(0, 100).start(std::io::stdout(), rand::thread_rng())
+    GuessingGame::new(0, 100, rand::thread_rng()).start(std::io::stdout())
 }
