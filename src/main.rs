@@ -9,6 +9,7 @@ struct GuessingGame {
     min: u32,
     max: u32,
     number_of_guesses: usize,
+    number_to_guess: Option<u32>,
 }
 
 impl GuessingGame {
@@ -17,6 +18,7 @@ impl GuessingGame {
             min,
             max,
             number_of_guesses: 0,
+            number_to_guess: None,
         }
     }
 
@@ -25,7 +27,7 @@ impl GuessingGame {
         mut writer: impl std::io::Write,
         mut rng: impl RngCore,
     ) -> Result<(), std::io::Error> {
-        let number_to_guess = rng.gen_range(self.min..=self.max);
+        self.number_to_guess = Some(rng.gen_range(self.min..=self.max));
 
         writeln!(writer, "Hello dear friend. Guess my secret number!")?;
 
@@ -47,7 +49,8 @@ impl GuessingGame {
             };
 
             self.number_of_guesses += 1;
-            match guess.cmp(&number_to_guess) {
+            // TODO: remove the unwrap
+            match guess.cmp(&self.number_to_guess.unwrap()) {
                 std::cmp::Ordering::Equal => {
                     writeln!(
                         writer,
