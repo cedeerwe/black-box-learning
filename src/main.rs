@@ -29,9 +29,31 @@ impl GuessingGame {
         }
     }
 
-    fn make_guess(&mut self, guess: u32) -> std::cmp::Ordering {
+    fn make_guess(&mut self, guess: u32) -> (bool, String) {
         self.number_of_guesses += 1;
-        guess.cmp(&self.number_to_guess)
+        match guess.cmp(&self.number_to_guess) {
+            std::cmp::Ordering::Equal => (
+                true,
+                format!(
+                    "You guessed correctly, the number is {}! It took you {} {}.",
+                    guess,
+                    self.number_of_guesses,
+                    if self.number_of_guesses == 1 {
+                        "guess"
+                    } else {
+                        "guesses"
+                    }
+                ),
+            ),
+            std::cmp::Ordering::Greater => (
+                false,
+                format!("The number {} is too big, try again!", guess),
+            ),
+            std::cmp::Ordering::Less => (
+                false,
+                format!("The number {} is too small, try again!", guess),
+            ),
+        }
     }
 
     fn start(&mut self, mut writer: impl std::io::Write) -> Result<(), std::io::Error> {
@@ -50,29 +72,9 @@ impl GuessingGame {
                     continue;
                 }
             };
-
-            match self.make_guess(guess) {
-                std::cmp::Ordering::Equal => {
-                    writeln!(
-                        writer,
-                        "You guessed correctly, the number is {}! It took you {} {}.",
-                        guess,
-                        self.number_of_guesses,
-                        if self.number_of_guesses == 1 {
-                            "guess"
-                        } else {
-                            "guesses"
-                        }
-                    )?;
-                    self.finished = true;
-                }
-                std::cmp::Ordering::Greater => {
-                    writeln!(writer, "The number {} is too big, try again!", guess)?
-                }
-                std::cmp::Ordering::Less => {
-                    writeln!(writer, "The number {} is too small, try again!", guess)?
-                }
-            };
+            let result = self.make_guess(guess);
+            self.finished = result.0;
+            writeln!(writer, "{}", result.1)?;
         }
         Ok(())
     }
