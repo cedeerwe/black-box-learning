@@ -55,8 +55,14 @@ impl GuessingGame {
                 std::cmp::Ordering::Equal => {
                     writeln!(
                         writer,
-                        "You guessed correctly, the number is {}! It took you {} guesses.",
-                        guess, self.number_of_guesses
+                        "You guessed correctly, the number is {}! It took you {} {}.",
+                        guess,
+                        self.number_of_guesses,
+                        if self.number_of_guesses == 1 {
+                            "guess"
+                        } else {
+                            "guesses"
+                        }
                     )?;
                     self.finished = true;
                 }
