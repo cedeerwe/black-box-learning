@@ -20,6 +20,13 @@ fn read_and_parse_u32() -> Result<u32, std::num::ParseIntError> {
     guess.trim().parse::<u32>()
 }
 
+enum GuessResult {
+    ParseError,
+    Less(u32),
+    Greater(u32),
+    Equal(u32),
+}
+
 impl GuessingGame {
     fn new(max: u32, mut rng: impl RngCore) -> Self {
         GuessingGame {
@@ -29,30 +36,12 @@ impl GuessingGame {
         }
     }
 
-    fn make_guess(&mut self, guess: u32) -> (bool, String) {
+    fn make_guess(&mut self, guess: u32) -> GuessResult {
         self.number_of_guesses += 1;
         match guess.cmp(&self.number_to_guess) {
-            std::cmp::Ordering::Equal => (
-                true,
-                format!(
-                    "You guessed correctly, the number is {}! It took you {} {}.",
-                    guess,
-                    self.number_of_guesses,
-                    if self.number_of_guesses == 1 {
-                        "guess"
-                    } else {
-                        "guesses"
-                    }
-                ),
-            ),
-            std::cmp::Ordering::Greater => (
-                false,
-                format!("The number {} is too big, try again!", guess),
-            ),
-            std::cmp::Ordering::Less => (
-                false,
-                format!("The number {} is too small, try again!", guess),
-            ),
+            std::cmp::Ordering::Equal => GuessResult::Equal(guess),
+            std::cmp::Ordering::Greater => GuessResult::Greater(guess),
+            std::cmp::Ordering::Less => GuessResult::Less(guess),
         }
     }
 
@@ -62,19 +51,38 @@ impl GuessingGame {
         self.number_of_guesses = 0;
 
         while !self.finished {
-            let guess = match read_and_parse_u32() {
-                Ok(num) => num,
-                Err(_) => {
+            let result = match read_and_parse_u32() {
+                Ok(num) => self.make_guess(num),
+                Err(_) => GuessResult::ParseError,
+            };
+            match result {
+                GuessResult::ParseError => {
                     writeln!(
                         writer,
                         "Input cannot be parsed as a positive integer, try again!"
                     )?;
-                    continue;
                 }
-            };
-            let result = self.make_guess(guess);
-            self.finished = result.0;
-            writeln!(writer, "{}", result.1)?;
+                GuessResult::Equal(guess) => {
+                    writeln!(
+                        writer,
+                        "You guessed correctly, the number is {}! It took you {} {}.",
+                        guess,
+                        self.number_of_guesses,
+                        if self.number_of_guesses == 1 {
+                            "guess"
+                        } else {
+                            "guesses"
+                        }
+                    )?;
+                    self.finished = true;
+                }
+                GuessResult::Greater(guess) => {
+                    writeln!(writer, "The number {} is too big, try again!", guess)?;
+                }
+                GuessResult::Less(guess) => {
+                    writeln!(writer, "The number {} is too small, try again!", guess)?;
+                }
+            }
         }
         Ok(())
     }
