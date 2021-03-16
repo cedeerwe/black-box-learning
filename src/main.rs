@@ -8,6 +8,7 @@ use std::io;
 struct GuessingGame {
     number_of_guesses: usize,
     number_to_guess: u32,
+    finished: bool,
 }
 
 fn read_and_parse_u32() -> Result<u32, std::num::ParseIntError> {
@@ -24,6 +25,7 @@ impl GuessingGame {
         GuessingGame {
             number_of_guesses: 0,
             number_to_guess: rng.gen_range(0..=max),
+            finished: true,
         }
     }
 
@@ -34,8 +36,10 @@ impl GuessingGame {
 
     fn start(&mut self, mut writer: impl std::io::Write) -> Result<(), std::io::Error> {
         writeln!(writer, "Hello dear friend. Guess my secret number!")?;
+        self.finished = false;
+        self.number_of_guesses = 0;
 
-        loop {
+        while !self.finished {
             let guess = match read_and_parse_u32() {
                 Ok(num) => num,
                 Err(_) => {
@@ -54,7 +58,7 @@ impl GuessingGame {
                         "You guessed correctly, the number is {}! It took you {} guesses.",
                         guess, self.number_of_guesses
                     )?;
-                    return Ok(());
+                    self.finished = true;
                 }
                 std::cmp::Ordering::Greater => {
                     writeln!(writer, "The number {} is too big, try again!", guess)?
@@ -64,6 +68,7 @@ impl GuessingGame {
                 }
             };
         }
+        Ok(())
     }
 }
 
