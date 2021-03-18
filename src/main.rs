@@ -45,17 +45,20 @@ impl GuessingGame {
         }
     }
 
+    fn evaluate_user_input(&mut self) -> GuessResult {
+        match read_and_parse_u32() {
+            Ok(num) => self.make_guess(num),
+            Err(_) => GuessResult::ParseError,
+        }
+    }
+
     fn start(&mut self, mut writer: impl std::io::Write) -> Result<(), std::io::Error> {
         writeln!(writer, "Hello dear friend. Guess my secret number!")?;
         self.finished = false;
         self.number_of_guesses = 0;
 
         while !self.finished {
-            let result = match read_and_parse_u32() {
-                Ok(num) => self.make_guess(num),
-                Err(_) => GuessResult::ParseError,
-            };
-            match result {
+            match self.evaluate_user_input() {
                 GuessResult::ParseError => {
                     writeln!(
                         writer,
