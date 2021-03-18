@@ -6,7 +6,7 @@ use std::io;
 // guesses correctly and the program finishes.
 // Implementation based on https://doc.rust-lang.org/book/ch02-00-guessing-game-tutorial.html
 struct GuessingGame {
-    number_of_guesses: usize,
+    number_of_guesses: Guesses,
     number_to_guess: u32,
     finished: bool,
 }
@@ -27,17 +27,30 @@ enum GuessResult {
     Equal(u32),
 }
 
+struct Guesses(usize);
+
+impl std::fmt::Display for Guesses {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{} {}",
+            self.0,
+            if self.0 == 1 { "guess" } else { "guesses" }
+        )
+    }
+}
+
 impl GuessingGame {
     fn new(max: u32, mut rng: impl RngCore) -> Self {
         GuessingGame {
-            number_of_guesses: 0,
+            number_of_guesses: Guesses(0),
             number_to_guess: rng.gen_range(0..=max),
             finished: true,
         }
     }
 
     fn make_guess(&mut self, guess: u32) -> GuessResult {
-        self.number_of_guesses += 1;
+        self.number_of_guesses = Guesses(self.number_of_guesses.0 + 1);
         match guess.cmp(&self.number_to_guess) {
             std::cmp::Ordering::Equal => GuessResult::Equal(guess),
             std::cmp::Ordering::Greater => GuessResult::Greater(guess),
@@ -55,7 +68,7 @@ impl GuessingGame {
     fn start(&mut self, mut writer: impl std::io::Write) -> Result<(), std::io::Error> {
         writeln!(writer, "Hello dear friend. Guess my secret number!")?;
         self.finished = false;
-        self.number_of_guesses = 0;
+        self.number_of_guesses = Guesses(0);
 
         while !self.finished {
             match self.evaluate_user_input() {
@@ -68,14 +81,8 @@ impl GuessingGame {
                 GuessResult::Equal(guess) => {
                     writeln!(
                         writer,
-                        "You guessed correctly, the number is {}! It took you {} {}.",
-                        guess,
-                        self.number_of_guesses,
-                        if self.number_of_guesses == 1 {
-                            "guess"
-                        } else {
-                            "guesses"
-                        }
+                        "You guessed correctly, the number is {}! It took you {}.",
+                        guess, self.number_of_guesses,
                     )?;
                     self.finished = true;
                 }
