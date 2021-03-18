@@ -5,10 +5,11 @@ use std::io;
 // will start guessing and the program answers with "Too small!" or "Too big!" until the player
 // guesses correctly and the program finishes.
 // Implementation based on https://doc.rust-lang.org/book/ch02-00-guessing-game-tutorial.html
-struct GuessingGame {
+struct GuessingGame<W: std::io::Write> {
     number_of_guesses: Guesses,
     number_to_guess: u32,
     finished: bool,
+    writer: W,
 }
 
 fn read_and_parse_u32() -> Result<u32, std::num::ParseIntError> {
@@ -40,12 +41,13 @@ impl std::fmt::Display for Guesses {
     }
 }
 
-impl GuessingGame {
-    fn new(max: u32, mut rng: impl RngCore) -> Self {
+impl<W: std::io::Write> GuessingGame<W> {
+    fn new(max: u32, mut rng: impl RngCore, writer: W) -> Self {
         GuessingGame {
             number_of_guesses: Guesses(0),
             number_to_guess: rng.gen_range(0..=max),
             finished: true,
+            writer,
         }
     }
 
@@ -65,44 +67,44 @@ impl GuessingGame {
         }
     }
 
-    fn user_round<W: std::io::Write>(&mut self, mut writer: W) -> Result<W, std::io::Error> {
+    fn user_round(&mut self) -> Result<(), std::io::Error> {
         match self.evaluate_user_input() {
             GuessResult::ParseError => {
                 writeln!(
-                    writer,
+                    self.writer,
                     "Input cannot be parsed as a positive integer, try again!"
                 )?;
             }
             GuessResult::Equal(guess) => {
                 writeln!(
-                    writer,
+                    self.writer,
                     "You guessed correctly, the number is {}! It took you {}.",
                     guess, self.number_of_guesses,
                 )?;
                 self.finished = true;
             }
             GuessResult::Greater(guess) => {
-                writeln!(writer, "The number {} is too big, try again!", guess)?;
+                writeln!(self.writer, "The number {} is too big, try again!", guess)?;
             }
             GuessResult::Less(guess) => {
-                writeln!(writer, "The number {} is too small, try again!", guess)?;
+                writeln!(self.writer, "The number {} is too small, try again!", guess)?;
             }
         }
-        Ok(writer)
+        Ok(())
     }
 
-    fn start(&mut self, mut writer: impl std::io::Write) -> Result<(), std::io::Error> {
-        writeln!(writer, "Hello dear friend. Guess my secret number!")?;
+    fn start(&mut self) -> Result<(), std::io::Error> {
+        writeln!(self.writer, "Hello dear friend. Guess my secret number!")?;
         self.finished = false;
         self.number_of_guesses = Guesses(0);
 
         while !self.finished {
-            writer = self.user_round(writer)?;
+            self.user_round()?;
         }
         Ok(())
     }
 }
 
 fn main() -> Result<(), std::io::Error> {
-    GuessingGame::new(100, rand::thread_rng()).start(std::io::stdout())
+    GuessingGame::new(100, rand::thread_rng(), std::io::stdout()).start()
 }
