@@ -65,34 +65,39 @@ impl GuessingGame {
         }
     }
 
+    fn user_round<W: std::io::Write>(&mut self, mut writer: W) -> Result<W, std::io::Error> {
+        match self.evaluate_user_input() {
+            GuessResult::ParseError => {
+                writeln!(
+                    writer,
+                    "Input cannot be parsed as a positive integer, try again!"
+                )?;
+            }
+            GuessResult::Equal(guess) => {
+                writeln!(
+                    writer,
+                    "You guessed correctly, the number is {}! It took you {}.",
+                    guess, self.number_of_guesses,
+                )?;
+                self.finished = true;
+            }
+            GuessResult::Greater(guess) => {
+                writeln!(writer, "The number {} is too big, try again!", guess)?;
+            }
+            GuessResult::Less(guess) => {
+                writeln!(writer, "The number {} is too small, try again!", guess)?;
+            }
+        }
+        Ok(writer)
+    }
+
     fn start(&mut self, mut writer: impl std::io::Write) -> Result<(), std::io::Error> {
         writeln!(writer, "Hello dear friend. Guess my secret number!")?;
         self.finished = false;
         self.number_of_guesses = Guesses(0);
 
         while !self.finished {
-            match self.evaluate_user_input() {
-                GuessResult::ParseError => {
-                    writeln!(
-                        writer,
-                        "Input cannot be parsed as a positive integer, try again!"
-                    )?;
-                }
-                GuessResult::Equal(guess) => {
-                    writeln!(
-                        writer,
-                        "You guessed correctly, the number is {}! It took you {}.",
-                        guess, self.number_of_guesses,
-                    )?;
-                    self.finished = true;
-                }
-                GuessResult::Greater(guess) => {
-                    writeln!(writer, "The number {} is too big, try again!", guess)?;
-                }
-                GuessResult::Less(guess) => {
-                    writeln!(writer, "The number {} is too small, try again!", guess)?;
-                }
-            }
+            writer = self.user_round(writer)?;
         }
         Ok(())
     }
