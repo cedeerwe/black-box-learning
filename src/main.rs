@@ -8,7 +8,6 @@ use std::io;
 struct GuessingGame<W: std::io::Write> {
     number_of_guesses: Guesses,
     number_to_guess: u32,
-    finished: bool,
     writer: W,
 }
 
@@ -46,7 +45,6 @@ impl<W: std::io::Write> GuessingGame<W> {
         GuessingGame {
             number_of_guesses: Guesses(0),
             number_to_guess: rng.gen_range(0..=max),
-            finished: true,
             writer,
         }
     }
@@ -67,13 +65,14 @@ impl<W: std::io::Write> GuessingGame<W> {
         }
     }
 
-    fn user_round(&mut self) -> Result<(), std::io::Error> {
+    fn user_round(&mut self) -> Result<bool, std::io::Error> {
         match self.evaluate_user_input() {
             GuessResult::ParseError => {
                 writeln!(
                     self.writer,
                     "Input cannot be parsed as a positive integer, try again!"
                 )?;
+                Ok(true)
             }
             GuessResult::Equal(guess) => {
                 writeln!(
@@ -81,26 +80,24 @@ impl<W: std::io::Write> GuessingGame<W> {
                     "You guessed correctly, the number is {}! It took you {}.",
                     guess, self.number_of_guesses,
                 )?;
-                self.finished = true;
+                Ok(false)
             }
             GuessResult::Greater(guess) => {
                 writeln!(self.writer, "The number {} is too big, try again!", guess)?;
+                Ok(true)
             }
             GuessResult::Less(guess) => {
                 writeln!(self.writer, "The number {} is too small, try again!", guess)?;
+                Ok(true)
             }
         }
-        Ok(())
     }
 
     fn start(&mut self) -> Result<(), std::io::Error> {
         writeln!(self.writer, "Hello dear friend. Guess my secret number!")?;
-        self.finished = false;
         self.number_of_guesses = Guesses(0);
 
-        while !self.finished {
-            self.user_round()?;
-        }
+        while self.user_round()? {}
         Ok(())
     }
 }
