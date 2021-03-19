@@ -1,6 +1,33 @@
 use rand::{Rng, RngCore};
 use std::io;
 
+// A simple rock paper scissors game. The program prompts the user for input shape (rock / paper / scissors)
+// and plays something. In the first iteration, the program will choose its shape randomly/
+// In the future, we may add strategies and certain players to improve the blackbox experience.
+// As, so far, the computer draws randomly, we require no multi-game state, so the entire "game" struct consists of only one round.
+
+struct RockPaperScissorsGame<W: std::io::Write> {
+  computer_shape: Shapes,
+  writer: W
+}
+
+#[derive(Copy, Clone)]
+enum Shapes {
+  Rock,
+  Paper,
+  Scissors
+}
+
+impl<W: std::io::Write> RockPaperScissorsGame<W>{
+  fn new(rng: impl RngCore, writer: W) -> Self {
+    let mut rng = rand::thread_rng();
+    RockPaperScissorsGame {
+      computer_shape: [Shapes::Rock, Shapes::Paper, Shapes::Scissors][rng.gen_range(0..2)], // todo: implement in a cleaner way
+      writer
+    }
+  }
+}
+
 // A simple guessing game. The program fixes a number between 0 and 100. The player
 // will start guessing and the program answers with "Too small!" or "Too big!" until the player
 // guesses correctly and the program finishes.
