@@ -10,6 +10,17 @@ struct RockPaperScissorsGame<W: std::io::Write> {
   writer: W
 }
 
+// probably dont need to return Result<String, ParseErorr> here, as all input is string
+// will later want to use this in read_and_parse_u32
+fn read_string() -> String {
+  let mut input = String::new();
+  io::stdin()
+    .read_line(&mut input)
+    .expect("Failed to read line");
+
+  input
+}
+
 #[derive(Copy, Clone)]
 enum Shapes {
   Rock,
