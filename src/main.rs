@@ -5,7 +5,6 @@ use std::io;
 // and plays something. In the first iteration, the program will choose its shape randomly/
 // In the future, we may add strategies and certain players to improve the blackbox experience.
 // As, so far, the computer draws randomly, we require no multi-game state, so the entire "game" struct consists of only one round.
-
 struct RockPaperScissorsGame<W: std::io::Write> {
   computer_shape: Shapes,
   writer: W
@@ -19,8 +18,7 @@ enum Shapes {
 }
 
 impl<W: std::io::Write> RockPaperScissorsGame<W>{
-  fn new(rng: impl RngCore, writer: W) -> Self {
-    let mut rng = rand::thread_rng();
+  fn new(mut rng: impl RngCore, writer: W) -> Self {
     RockPaperScissorsGame {
       computer_shape: [Shapes::Rock, Shapes::Paper, Shapes::Scissors][rng.gen_range(0..2)], // todo: implement in a cleaner way
       writer
