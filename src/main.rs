@@ -30,11 +30,26 @@ enum ShapesInput {
   Unrecognized,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Eq, PartialEq)]
 enum RoundState {
   Draw,
   Win,
   Lose
+}
+
+impl std::fmt::Display for ShapesInput {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+      write!(f, "{:?}", self)
+  }
+}
+
+impl std::fmt::Display for RoundState {
+  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    write!(
+      f, 
+      "The round was {:}.",
+      if self == &RoundState::Lose { "lost" } else if self == &RoundState::Draw { "a draw" } else { "won" } )
+  }
 }
 
 impl<W: std::io::Write> RockPaperScissorsGame<W>{
@@ -56,7 +71,6 @@ impl<W: std::io::Write> RockPaperScissorsGame<W>{
 
   fn play_round(&mut self) -> Result<bool, std::io::Error> {
     let input = self.evaluate_user_input();
-    dbg!(input);
     match input {
       ShapesInput::Unrecognized => {
         writeln!(
@@ -66,28 +80,29 @@ impl<W: std::io::Write> RockPaperScissorsGame<W>{
         Ok(true)
       },
       shape_played => {
-        let result = self.evaluate_as_left(shape_played, self.computer_shape);
-        dbg!(
-          // "you played {}, they played {}, result = {}",
+        let result = self.evaluate_game_as_left(shape_played, self.computer_shape);
+        writeln!(
+          self.writer,
+          "You played {}, the computer played {}. {}", 
           shape_played, self.computer_shape, result
-        );
+        )?;
         Ok(false)
       }
     }
   }
 
-  fn transform_shape_to_int(&mut self, shape: ShapesInput) -> i32 {
+  fn transform_shape_to_int(&mut self, shape: ShapesInput) -> Option<i32>  {
     match shape {
-      ShapesInput::Rock => 0,
-      ShapesInput::Paper => 1,
-      ShapesInput::Scissors => 2,
-      _ => 9999
+      ShapesInput::Rock => Some(0),
+      ShapesInput::Paper => Some(1),
+      ShapesInput::Scissors => Some(2),
+      _ => None
     }
   }
 
-  fn evaluate_as_left(&mut self, left: ShapesInput, right: ShapesInput) -> RoundState {
-    let left_int = self.transform_shape_to_int(left);
-    let right_int = self.transform_shape_to_int(right);
+  fn evaluate_game_as_left(&mut self, left: ShapesInput, right: ShapesInput) -> RoundState {
+    let left_int = self.transform_shape_to_int(left).unwrap();
+    let right_int = self.transform_shape_to_int(right).unwrap();
 
     if left_int == right_int {
       RoundState::Draw
