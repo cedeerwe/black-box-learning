@@ -27,7 +27,7 @@ fn read_string() -> String {
     .read_line(&mut input)
     .expect("Failed to read line");
 
-  input.pop();
+  if input.ends_with("\n") { input.pop(); }
   input
 }
 
