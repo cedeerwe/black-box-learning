@@ -10,15 +10,6 @@ struct RockPaperScissorsGame<W: std::io::Write> {
   writer: W
 }
 
-fn trim_newline(s: &mut String) {
-  if s.ends_with('\n') {
-      s.pop();
-      if s.ends_with('\r') {
-          s.pop();
-      }
-  }
-}
-
 // probably dont need to return Result<String, ParseErorr> here, as all input is string
 // will later want to use this in read_and_parse_u32
 fn read_string() -> String {
@@ -74,18 +65,18 @@ impl<W: std::io::Write> RockPaperScissorsGame<W>{
         )?;
         Ok(true)
       },
-      shapePlayed => {
-        let result = self.evaluateAsLeft(shapePlayed, self.computer_shape);
+      shape_played => {
+        let result = self.evaluate_as_left(shape_played, self.computer_shape);
         dbg!(
           // "you played {}, they played {}, result = {}",
-          shapePlayed, self.computer_shape, result
+          shape_played, self.computer_shape, result
         );
         Ok(false)
       }
     }
   }
 
-  fn transformShapeToInt(&mut self, shape: ShapesInput) -> i32 {
+  fn transform_shape_to_int(&mut self, shape: ShapesInput) -> i32 {
     match shape {
       ShapesInput::Rock => 0,
       ShapesInput::Paper => 1,
@@ -94,13 +85,13 @@ impl<W: std::io::Write> RockPaperScissorsGame<W>{
     }
   }
 
-  fn evaluateAsLeft(&mut self, left: ShapesInput, right: ShapesInput) -> RoundState {
-    let leftInt = self.transformShapeToInt(left);
-    let rightInt = self.transformShapeToInt(right);
+  fn evaluate_as_left(&mut self, left: ShapesInput, right: ShapesInput) -> RoundState {
+    let left_int = self.transform_shape_to_int(left);
+    let right_int = self.transform_shape_to_int(right);
 
-    if leftInt == rightInt {
+    if left_int == right_int {
       RoundState::Draw
-    } else if (leftInt - rightInt) % 3 == 1 {
+    } else if (left_int - right_int) % 3 == 1 {
       RoundState::Win
     } else {
       RoundState::Lose
