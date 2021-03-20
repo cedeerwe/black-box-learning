@@ -22,17 +22,27 @@ fn read_string() -> String {
 }
 
 #[derive(Copy, Clone)]
-enum Shapes {
+enum ShapesInput {
   Rock,
   Paper,
-  Scissors
+  Scissors,
+  Unrecognized,
 }
 
 impl<W: std::io::Write> RockPaperScissorsGame<W>{
-  fn new(mut rng: impl RngCore, writer: W) -> Self {
+  pub fn new(mut rng: impl RngCore, writer: W) -> Self {
     RockPaperScissorsGame {
-      computer_shape: [Shapes::Rock, Shapes::Paper, Shapes::Scissors][rng.gen_range(0..2)], // todo: implement in a cleaner way
+      computer_shape: [ShapesInput::Rock, ShapesInput::Paper, ShapesInput::Scissors][rng.gen_range(0..2)], // todo: implement in a cleaner way, extract from constructor
       writer
+    }
+  }
+
+  fn evaluate_user_input(&mut self) -> ShapesInput {
+    match read_string().to_lowercase().as_ref() {
+      "rock" => ShapesInput::Rock,
+      "paper" => ShapesInput::Paper,
+      "scissors" => ShapesInput::Scissors,
+      _ => ShapesInput::Unrecognized
     }
   }
 }
