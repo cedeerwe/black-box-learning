@@ -6,7 +6,6 @@ use std::io;
 // In the future, we may add strategies and certain players to improve the blackbox experience.
 // As, so far, the computer draws randomly, we require no multi-game state, so the entire "game" struct consists of only one round.
 struct RockPaperScissorsGame<W: std::io::Write> {
-  computer_shape: ShapesInput,
   writer: W
 }
 
@@ -54,9 +53,8 @@ impl std::fmt::Display for RoundState {
 }
 
 impl<W: std::io::Write> RockPaperScissorsGame<W>{
-  pub fn new(mut rng: impl RngCore, writer: W) -> Self {
+  pub fn new(writer: W) -> Self {
     RockPaperScissorsGame {
-      computer_shape: [ShapesInput::Rock, ShapesInput::Paper, ShapesInput::Scissors][rng.gen_range(0..2)], // todo: implement in a cleaner way, extract from constructor
       writer
     }
   }
@@ -68,6 +66,10 @@ impl<W: std::io::Write> RockPaperScissorsGame<W>{
       "scissors" => ShapesInput::Scissors,
       _ => ShapesInput::Unrecognized
     }
+  }
+  
+  fn get_random_playable_shape(&mut self, mut rng: impl RngCore) -> ShapesInput {
+    [ShapesInput::Rock, ShapesInput::Paper, ShapesInput::Scissors][rng.gen_range(0..2)]
   }
 
   fn play_round(&mut self) -> Result<bool, std::io::Error> {
@@ -81,11 +83,12 @@ impl<W: std::io::Write> RockPaperScissorsGame<W>{
         Ok(true)
       },
       shape_played => {
-        let result = self.evaluate_game_as_left(shape_played, self.computer_shape);
+        let computer_shape = self.get_random_playable_shape(rand::thread_rng());
+        let result = self.evaluate_game_as_left(shape_played, computer_shape);
         writeln!(
           self.writer,
           "You played {}, the computer played {}. {}", 
-          shape_played, self.computer_shape, result
+          shape_played, computer_shape, result
         )?;
         Ok(false)
       }
@@ -226,5 +229,5 @@ impl<W: std::io::Write> GuessingGame<W> {
 
 fn main() -> Result<(), std::io::Error> {
     // GuessingGame::new(100, rand::thread_rng(), std::io::stdout()).start()
-    RockPaperScissorsGame::new(rand::thread_rng(), std::io::stdout()).start()
+    RockPaperScissorsGame::new(std::io::stdout()).start()
 }
