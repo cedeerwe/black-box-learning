@@ -69,7 +69,7 @@ impl<W: std::io::Write> RockPaperScissorsGame<W>{
   }
   
   fn get_random_playable_shape(&mut self, mut rng: impl RngCore) -> ShapesInput {
-    [ShapesInput::Rock, ShapesInput::Paper, ShapesInput::Scissors][rng.gen_range(0..2)]
+    [ShapesInput::Rock, ShapesInput::Paper, ShapesInput::Scissors][rng.gen_range(0..2)] // todo: implement in a more rust way
   }
 
   fn play_round(&mut self) -> Result<bool, std::io::Error> {
