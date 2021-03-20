@@ -6,7 +6,7 @@ use std::io;
 // In the future, we may add strategies and certain players to improve the blackbox experience.
 // As, so far, the computer draws randomly, we require no multi-game state, so the entire "game" struct consists of only one round.
 struct RockPaperScissorsGame<W: std::io::Write> {
-  computer_shape: Shapes,
+  computer_shape: ShapesInput,
   writer: W
 }
 
@@ -21,12 +21,19 @@ fn read_string() -> String {
   input
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 enum ShapesInput {
   Rock,
   Paper,
   Scissors,
   Unrecognized,
+}
+
+#[derive(Debug)]
+enum RoundState {
+  Draw,
+  Win,
+  Lose
 }
 
 impl<W: std::io::Write> RockPaperScissorsGame<W>{
@@ -45,6 +52,58 @@ impl<W: std::io::Write> RockPaperScissorsGame<W>{
       _ => ShapesInput::Unrecognized
     }
   }
+
+  fn play_round(&mut self) -> Result<bool, std::io::Error> {
+    let input = self.evaluate_user_input();
+    dbg!(input);
+    match input {
+      ShapesInput::Unrecognized => {
+        writeln!(
+          self.writer,
+          "Input cannot be parsed as a a rock / paper / scissors, try again!"
+        )?;
+        Ok(true)
+      },
+      shapePlayed => {
+        let result = self.evaluateAsLeft(shapePlayed, self.computer_shape);
+        dbg!(
+          // "you played {}, they played {}, result = {}",
+          shapePlayed, self.computer_shape, result
+        );
+        Ok(false)
+      }
+    }
+  }
+
+  fn transformShapeToInt(&mut self, shape: ShapesInput) -> i32 {
+    match shape {
+      ShapesInput::Rock => 0,
+      ShapesInput::Paper => 1,
+      ShapesInput::Scissors => 2,
+      _ => 9999
+    }
+  }
+
+  fn evaluateAsLeft(&mut self, left: ShapesInput, right: ShapesInput) -> RoundState {
+    let leftInt = self.transformShapeToInt(left);
+    let rightInt = self.transformShapeToInt(right);
+
+    if leftInt == rightInt {
+      RoundState::Draw
+    } else if (leftInt - rightInt) % 3 == 1 {
+      RoundState::Win
+    } else {
+      RoundState::Lose
+    }
+  }
+
+  fn start(&mut self) -> Result<(), std::io::Error> {
+    writeln!(self.writer, "Hello dear friend. Rock/paper/scissors?")?;
+
+    while self.play_round()? {}
+    Ok(())
+  }
+
 }
 
 // A simple guessing game. The program fixes a number between 0 and 100. The player
@@ -149,5 +208,6 @@ impl<W: std::io::Write> GuessingGame<W> {
 }
 
 fn main() -> Result<(), std::io::Error> {
-    GuessingGame::new(100, rand::thread_rng(), std::io::stdout()).start()
+    // GuessingGame::new(100, rand::thread_rng(), std::io::stdout()).start()
+    RockPaperScissorsGame::new(rand::thread_rng(), std::io::stdout()).start()
 }
