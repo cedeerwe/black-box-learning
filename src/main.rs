@@ -48,7 +48,8 @@ impl std::fmt::Display for RoundState {
     write!(
       f, 
       "The round was {:}.",
-      if self == &RoundState::Lose { "lost" } else if self == &RoundState::Draw { "a draw" } else { "won" } )
+      if self == &RoundState::Lose { "lost" } else if self == &RoundState::Draw { "a draw" } else { "won" } 
+    )
   }
 }
 
