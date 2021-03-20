@@ -10,6 +10,15 @@ struct RockPaperScissorsGame<W: std::io::Write> {
   writer: W
 }
 
+fn trim_newline(s: &mut String) {
+  if s.ends_with('\n') {
+      s.pop();
+      if s.ends_with('\r') {
+          s.pop();
+      }
+  }
+}
+
 // probably dont need to return Result<String, ParseErorr> here, as all input is string
 // will later want to use this in read_and_parse_u32
 fn read_string() -> String {
@@ -18,6 +27,7 @@ fn read_string() -> String {
     .read_line(&mut input)
     .expect("Failed to read line");
 
+  input.pop();
   input
 }
 
@@ -45,7 +55,7 @@ impl<W: std::io::Write> RockPaperScissorsGame<W>{
   }
 
   fn evaluate_user_input(&mut self) -> ShapesInput {
-    match read_string().to_lowercase().as_ref() {
+    match read_string().to_lowercase().as_str() as &str {
       "rock" => ShapesInput::Rock,
       "paper" => ShapesInput::Paper,
       "scissors" => ShapesInput::Scissors,
